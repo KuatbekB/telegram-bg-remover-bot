@@ -39,6 +39,7 @@ DEBUG_DIR = Path(os.getenv("DEBUG_DIR", str(BOT_DIR / "debug_images")))
 REMOVE_WHITE_REMNANTS = env_bool("REMOVE_WHITE_REMNANTS", "true")
 WHITE_REMNANT_THRESHOLD = int(os.getenv("WHITE_REMNANT_THRESHOLD", "245"))
 EDGE_FEATHER_RADIUS = float(os.getenv("EDGE_FEATHER_RADIUS", "0.4"))
+REQUIRE_CHANNEL_SUBSCRIPTION = env_bool("REQUIRE_CHANNEL_SUBSCRIPTION", "false")
 REQUIRED_CHANNEL = os.getenv("REQUIRED_CHANNEL", "@superski9")
 REQUIRED_CHANNEL_URL = os.getenv("REQUIRED_CHANNEL_URL", "https://t.me/superski9")
 CHECK_SUBSCRIPTION_CALLBACK = "check_subscription"
@@ -64,6 +65,21 @@ def subscription_keyboard() -> InlineKeyboardMarkup:
             [InlineKeyboardButton("Подписаться на канал", url=REQUIRED_CHANNEL_URL)],
             [InlineKeyboardButton("Проверить подписку", callback_data=CHECK_SUBSCRIPTION_CALLBACK)],
         ]
+    )
+
+
+def subscription_intro_text() -> str:
+    if not REQUIRE_CHANNEL_SUBSCRIPTION:
+        return ""
+    return f"<b>Доступ только после подписки:</b> <a href=\"{REQUIRED_CHANNEL_URL}\">{REQUIRED_CHANNEL}</a>\n\n"
+
+
+def subscription_settings_text() -> str:
+    if not REQUIRE_CHANNEL_SUBSCRIPTION:
+        return "Проверка подписки: <code>выключена</code>\n"
+    return (
+        "Проверка подписки: <code>включена</code>\n"
+        f"Канал доступа: <code>{REQUIRED_CHANNEL}</code>\n"
     )
 
 _session = None
@@ -253,6 +269,9 @@ async def send_subscription_required(update: Update, context: ContextTypes.DEFAU
 
 
 async def require_subscription(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
+    if not REQUIRE_CHANNEL_SUBSCRIPTION:
+        return True
+
     if await is_user_subscribed(update, context):
         return True
 
@@ -305,7 +324,7 @@ async def check_subscription_callback(update: Update, context: ContextTypes.DEFA
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.effective_message.reply_text(
         f"<b>{BOT_NAME}</b>\n\n"
-        f"<b>Доступ только после подписки:</b> <a href=\"{REQUIRED_CHANNEL_URL}\">{REQUIRED_CHANNEL}</a>\n\n"
+        f"{subscription_intro_text()}"
         "Удаляю фон с фото и возвращаю PNG с прозрачностью. "
         "Такой файл можно вставлять в Photoshop, Canva, Figma или на сайт.\n\n"
         "<b>Как начать</b>\n"
@@ -315,7 +334,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         parse_mode=ParseMode.HTML,
         reply_markup=MAIN_KEYBOARD,
     )
-    if not await is_user_subscribed(update, context):
+    if REQUIRE_CHANNEL_SUBSCRIPTION and not await is_user_subscribed(update, context):
         await send_subscription_required(update, context)
 
 
@@ -350,7 +369,7 @@ async def settings_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         f"Очистка маски: <code>{POST_PROCESS_MASK}</code>\n"
         f"Удаление белых остатков: <code>{REMOVE_WHITE_REMNANTS}</code>\n"
         f"Смягчение края: <code>{EDGE_FEATHER_RADIUS}</code>\n"
-        f"Канал доступа: <code>{REQUIRED_CHANNEL}</code>\n"
+        f"{subscription_settings_text()}"
         f"Лимит файла: <code>{MAX_DOWNLOAD_BYTES // (1024 * 1024)} МБ</code>",
         parse_mode=ParseMode.HTML,
         reply_markup=MAIN_KEYBOARD,
