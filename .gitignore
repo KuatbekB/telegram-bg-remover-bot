@@ -7,7 +7,13 @@ __pycache__/
 !.env.example
 
 debug_images/
+test-*.png
+retest-*.png
+smoke-*.png
 *.log
+telegram-bg-remover.lock
+telegram-bg-remover-ready
+telegram-bg-remover-heartbeat
 
 .DS_Store
 Thumbs.db

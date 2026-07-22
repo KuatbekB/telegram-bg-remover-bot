@@ -1,3 +1,5 @@
 python-telegram-bot==22.8
-rembg[cpu]
-pillow
+aiolimiter==1.2.1
+rembg[cpu]==2.0.76
+onnxruntime==1.27.0
+pillow==12.3.0

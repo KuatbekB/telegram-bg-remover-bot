@@ -1,0 +1,16 @@
+.git
+.agents
+.codex
+.venv
+__pycache__
+*.py[cod]
+.env
+.env.*
+!.env.example
+debug_images
+test-*.png
+retest-*.png
+smoke-*.png
+tests
+requirements-dev.txt
+*.log
